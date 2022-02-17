@@ -1,0 +1,3 @@
+facebook_scraper==0.2.53
+Jinja2==3.0.1
+PyQt5==5.15.6

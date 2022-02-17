@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 from gui import Ui_MainWindow
 from scraper import GroupsScraper
 from facebook_scraper.exceptions import LoginError
-
+from html_generator import HtmlGenerator
 
 class Main:
     progress_id = 1
@@ -115,11 +115,16 @@ class Main:
 
     # this function is being called once the scraping is done
     def set_scraping_result(self, result):
-        # write results to file utf 8
-        # with open("results.txt", "w", encoding="") as f:
-        #     f.write(str(result))
-        print(result)
-        self.update_progress("Scraping done.")
+        self.update_progress("Scraping done, outputing to file...")
+        print(type(result))
+
+        try:
+            HtmlGenerator(result).generate_html()
+            self.update_progress("Posts file generated in web folder.")
+        except Exception as e:
+            self.update_progress(
+                f"<span style='color:red'>Error: {e}</span>")
+        
         ui.start_btn.setEnabled(True)
 
     def error_dialog(self, message, title="Error"):
