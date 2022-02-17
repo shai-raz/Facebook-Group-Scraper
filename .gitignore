@@ -1,0 +1,9 @@
+Preview_Gui.bat
+credentials.txt
+account_creds.txt
+posts.txt
+results.txt
+__pycache__/gui.cpython-39.pyc
+__pycache__/main.cpython-39.pyc
+__pycache__/scraper.cpython-39.pyc
+__pycache__/utils.cpython-39.pyc
