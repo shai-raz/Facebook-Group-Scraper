@@ -1,7 +1,6 @@
 import jinja2
 import datetime
 
-
 class HtmlGenerator:
     def __init__(self, posts):
         self.posts = posts
@@ -16,8 +15,8 @@ class HtmlGenerator:
         html_text = template.render(self.posts)
 
         # output to file
-        with open('./web/posts.html', 'w') as f:
-            f.write(html_text)
+        with open('./web/posts.html', 'wb') as f:
+            f.write(html_text.encode('utf-8'))
 
 
 if __name__ == "__main__":

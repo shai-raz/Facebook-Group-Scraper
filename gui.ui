@@ -247,10 +247,10 @@
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>630</y>
-      <width>191</width>
-      <height>141</height>
+      <x>510</x>
+      <y>620</y>
+      <width>211</width>
+      <height>171</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -262,7 +262,7 @@
     <widget class="QPushButton" name="start_btn">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>30</x>
        <y>50</y>
        <width>151</width>
        <height>71</height>
@@ -275,7 +275,7 @@
     <widget class="QLineEdit" name="hours_edit">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>100</x>
        <y>20</y>
        <width>41</width>
        <height>21</height>
@@ -294,7 +294,7 @@
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>20</x>
        <y>0</y>
        <width>81</width>
        <height>61</height>
@@ -312,7 +312,7 @@
     <widget class="QLabel" name="label_4">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>140</x>
        <y>0</y>
        <width>81</width>
        <height>61</height>
@@ -325,6 +325,22 @@
      </property>
      <property name="text">
       <string> hours</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="show_result_on_finish_chkbx">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>140</y>
+       <width>171</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Show result on finish</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>

@@ -1,5 +1,6 @@
 import os
 import sys
+import webbrowser
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -13,6 +14,7 @@ import utils
 class Main:
     progress_id = 1
     progress = ""
+    group_id_name_dict = {}
 
     def __init__(self, ui):
         self.ui = ui
@@ -31,6 +33,7 @@ class Main:
         # get group name
         self.update_progress("Getting group name...")
         group_name = utils.get_group_name(group_id)
+        self.group_id_name_dict[group_id] = group_name
 
         if group_name == "Error" or group_name == "Facebook":
             self.update_progress("Error getting group name...", error=True)
@@ -65,8 +68,6 @@ class Main:
     def remove_group(self, item):
         ui.groups_list.takeTopLevelItem(
             ui.groups_list.indexOfTopLevelItem(item))
-
-        group_id = item.text(1)
 
         # remove from file
         with open("groups.txt", "r+", encoding="utf-8") as f:
@@ -140,6 +141,9 @@ class Main:
             self.progress += f"{self.progress_id}. {new_progress}<br>"
 
         ui.progress_edit.setText(self.progress)
+        # scroll down
+        ui.progress_edit.verticalScrollBar().setValue(
+            ui.progress_edit.verticalScrollBar().maximum())
 
         # update gui immediately
         QApplication.processEvents()
@@ -182,12 +186,11 @@ class Main:
         for i in range(ui.keywords_list.topLevelItemCount()):
             keywords.append(ui.keywords_list.topLevelItem(i).text(1))
 
-        print("from lists:", group_ids, keywords)
-
         scraper = GroupsScraper(email,
                                 password,
                                 group_ids,
-                                keywords)
+                                keywords,
+                                self.group_id_name_dict)
 
         # connect the scraping complete signal to the set_scraping_result function,
         # so when the scraping is done, a signal will be emitted, and the function will be called
@@ -200,13 +203,18 @@ class Main:
             self.update_progress(f"Login error: {e}", error=True)
 
     # this function is being called once the scraping is done
+    # (by a signal emitted from scraper.py)
     def set_scraping_result(self, result):
         self.update_progress("Scraping done, outputing to file...")
 
         try:
             HtmlGenerator(result).generate_html()
             self.update_progress("Posts file generated in web folder.")
+            if ui.show_result_on_finish_chkbx.isChecked():
+                path = os.path.join(os.getcwd(), "web", "posts.html")
+                webbrowser.open("file:///" + path, new=0, autoraise=True)
         except Exception as e:
+            print(e)
             self.update_progress(f"Error: {e}", error=True)
 
         ui.start_btn.setEnabled(True)
@@ -251,6 +259,8 @@ class Main:
                     remove_btn.clicked.connect(lambda: self.remove_group(item))
 
                     ui.groups_list.setItemWidget(item, 3, remove_btn)
+
+                    self.group_id_name_dict[group_id] = group_name
 
     # load already existing keywords from keywords.txt
     def load_keywords(self):

@@ -1,20 +1,29 @@
+:root {
+    --color-background: #121212;
+    --color-foreground: #1E1E1E;
+    --color-text: #DDDDDD;
+    --color-link: #abcafa;
+}
+
 body {
     margin: 0;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(78, 78, 78, 0.2);
+    /*background: linear-gradient(to bottom, #f8f8f8 25%, #a4f1c41a 100%);*/
+    background-color: var(--color-background);
     font-family: 'Roboto', sans-serif;
+    color: var(--color-text);
 }
 
 a {
     text-decoration: none;
-    color: #0000EE;
+    color: var(--color-link);
 }
 
 a:visited {
-    color: #0000EE;
+    color: var(--color-link);
 }
 
 .card {
@@ -23,12 +32,11 @@ a:visited {
     min-width: 30vw;
     max-width: 60vw;
     padding: 2em;
-    margin-bottom: 3em;
-    border-radius: .5em;
-    background-color: #fff;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-
-
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    border-radius: .30em;
+    background-color: #1E1E1E;
+    box-shadow: 2px 2px 8px 0px rgb(0 0 0);
     box-sizing: border-box;
 }
 
@@ -36,11 +44,24 @@ a:visited {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    text-align: center;
+    align-items: center;
+    margin-bottom: 1em;
+    padding-bottom: .2em;
+    border-bottom: 1px solid #DDDDDD;
 }
 
-.card-header-left {
+.card-header-right {
     font-weight: bold;
 }
+
+.card-header-center {
+    margin: 0 3em 0 3em;
+}
+
+/*.card-header > div {
+    margin: 0 1em 0 1em;
+}*/
 
 .card-body {
     margin-top: 1em;
@@ -55,7 +76,7 @@ a:visited {
     font-weight: bold;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
     .card {
         width: 100%;
         max-width: 90vw;
