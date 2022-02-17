@@ -1,20 +1,22 @@
 import threading
+import datetime
 from time import sleep
 from facebook_scraper import get_posts
-import datetime
 from PyQt5.QtCore import *
 
-class GroupsScraper(threading.Thread):
-    def __init__(self, email, password, groups_id, callback):
+
+class GroupsScraper(QObject, threading.Thread):
+    # this signal will indicate when the scraping in complete
+    scrape_complete_sig = pyqtSignal(dict)
+
+    def __init__(self, email, password, groups_id):
         threading.Thread.__init__(self)
+        QObject.__init__(self)
         self.email = email
         self.password = password
         self.groups_id = groups_id
-        self.callback = callback
 
-    # returns: dictionary of group_id: list of posts
-    def get_groups_posts(self):
-        print("get_groups_posts")
+    def get_fake_groups_posts(self):
         fake_result = {
             2786770884931764: [
                 {'post_url':
@@ -33,9 +35,12 @@ class GroupsScraper(threading.Thread):
             ]
         }
 
-        # sleep(2)
-        print("get_groups_posts")
+        sleep(2)
         return fake_result
+
+    # returns: dictionary of group_id: list of posts
+    def get_groups_posts(self):
+        return self.get_fake_groups_posts()
 
         result = {}
 
@@ -54,10 +59,5 @@ class GroupsScraper(threading.Thread):
         return result
 
     def run(self):
-        # self.callback(self.get_groups_posts())
-        
-        scraper_finised_sig = ScraperFinished()
-        self.scraper_finised_sig.sig_with_dict.connect(self.callback)
-
-class ScraperFinished(QObject):
-    sig_with_dict = pyqtSignal(dict)
+        # emit a signal that scraping is done
+        self.scrape_complete_sig.emit(self.get_groups_posts())
