@@ -9,12 +9,12 @@ class GroupsScraper(QObject, threading.Thread):
     # this signal will indicate when the scraping in complete
     scrape_complete_sig = pyqtSignal(dict)
 
-    def __init__(self, email, password, groups_id):
+    def __init__(self, email, password, group_ids, keywords):
         threading.Thread.__init__(self)
         QObject.__init__(self)
         self.email = email
         self.password = password
-        self.groups_id = groups_id
+        self.groups_id = group_ids
 
     def get_fake_groups_posts(self):
         fake_result = {

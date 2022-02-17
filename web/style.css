@@ -20,7 +20,7 @@ a:visited {
 .card {
     display: flex;
     flex-direction: column;
-    min-width: 15em;
+    min-width: 30vw;
     max-width: 60vw;
     padding: 2em;
     margin-bottom: 3em;
