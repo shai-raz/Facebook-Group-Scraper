@@ -1,3 +1,5 @@
-facebook_scraper==0.2.53
+beautifulsoup4==4.10.0
+facebook_scraper==0.2.54
 Jinja2==3.0.1
 PyQt5==5.15.6
+requests==2.22.0
