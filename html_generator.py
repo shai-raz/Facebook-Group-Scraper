@@ -19,7 +19,7 @@ def generate_html(posts):
         os.makedirs(output_path)
 
     # get current time
-    current_datetime = datetime.datetime.now().strftime("%H-%M_%d.%m.%Y_%s")
+    current_datetime = datetime.datetime.now().strftime("%H-%M_%d.%m.%Y_%S")
     file_name = f'posts_{current_datetime}.html'
 
     # output to file
