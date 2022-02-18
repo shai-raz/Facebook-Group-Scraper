@@ -16,7 +16,11 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Facebook Group Scarper</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icons/logo.jpg</normaloff>icons/logo.jpg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="groupBox">
@@ -44,7 +48,10 @@
       <item>
        <widget class="QTreeWidget" name="keywords_list">
         <property name="selectionMode">
-         <enum>QAbstractItemView::NoSelection</enum>
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectItems</enum>
         </property>
         <attribute name="headerStretchLastSection">
          <bool>false</bool>
@@ -119,7 +126,10 @@
       <item>
        <widget class="QTreeWidget" name="groups_list">
         <property name="selectionMode">
-         <enum>QAbstractItemView::NoSelection</enum>
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectItems</enum>
         </property>
         <attribute name="headerStretchLastSection">
          <bool>false</bool>
@@ -285,7 +295,7 @@
       <enum>Qt::ClickFocus</enum>
      </property>
      <property name="text">
-      <string>24</string>
+      <string>2</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -324,7 +334,7 @@
       </font>
      </property>
      <property name="text">
-      <string> hours</string>
+      <string> pages</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="show_result_on_finish_chkbx">
@@ -354,9 +364,9 @@
      </rect>
     </property>
     <property name="title">
-     <string>Progress</string>
+     <string>Log</string>
     </property>
-    <widget class="QTextEdit" name="progress_edit">
+    <widget class="QTextEdit" name="log_edit">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -372,11 +382,14 @@
        <bold>false</bold>
       </font>
      </property>
+     <property name="locale">
+      <locale language="English" country="Israel"/>
+     </property>
      <property name="readOnly">
       <bool>true</bool>
      </property>
      <property name="placeholderText">
-      <string>Progress...</string>
+      <string/>
      </property>
     </widget>
    </widget>
