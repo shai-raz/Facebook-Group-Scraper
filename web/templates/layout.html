@@ -15,8 +15,8 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-header-left"><a href="{{ post.post_url }}" target="_blank">Post Link</a></div>
-                <div class="card-header-center">{{ post.time }}</div>
-                <div class="card-header-right">{{ post.group_name }}</div>
+                <div class="card-header-center">{{ post.group_name }}</div>
+                <div class="card-header-right">{{ post.time }}</div>
             </div>
 
             <div class="card-body">
@@ -25,7 +25,9 @@
 
             <div class="card-footer">
                 <p>Keywords matched:</p>
-                    
+                {% for keyword in post.keywords %}
+                    {{ keyword }}, 
+                {% endfor %}
             </div>
         </div>
         {% endfor %}
