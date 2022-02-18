@@ -7,21 +7,28 @@ from PyQt5.QtCore import *
 from gui import Ui_MainWindow
 from scraper import GroupsScraper
 from facebook_scraper.exceptions import LoginError
-from html_generator import HtmlGenerator
+from html_generator import *
 import utils
 
 
 class Main:
-    progress_id = 1
-    progress = ""
+    log_id = 1
+    log = ""
     group_id_name_dict = {}
 
     def __init__(self, ui):
         self.ui = ui
 
+    # add a group to list, file and dict
     def add_group(self):
         # get group id
         group_id = ui.groupid_edit.text()
+
+        # check if group id is empty
+        if group_id == "":
+            self.error_dialog("Group ID cannot be empty.")
+            ui.groupid_edit.clear()
+            return
 
         # check if group id already exists
         for i in range(ui.groups_list.topLevelItemCount()):
@@ -31,40 +38,28 @@ class Main:
                 return
 
         # get group name
-        self.update_progress("Getting group name...")
+        self.add_to_log(f"Getting {group_id}'s group name...")
         group_name = utils.get_group_name(group_id)
         self.group_id_name_dict[group_id] = group_name
 
         if group_name == "Error" or group_name == "Facebook":
-            self.update_progress("Error getting group name...", error=True)
+            self.add_to_log("Error getting group name...", error=True)
             ui.groupid_edit.clear()
             return
 
-        # create list item
-        item = QTreeWidgetItem(ui.groups_list)
-        item.setCheckState(0, Qt.Checked)
-        item.setText(1, group_id)
-        item.setText(2, group_name)
+        # add list item
+        self.add_group_list_item(group_id, group_name)
 
-        # remove button (icon)
-        remove_btn = QPushButton(parent=ui.groups_list)
-        remove_btn.setFixedSize(QSize(20, 20))
-        remove_btn.setIcon(QApplication.style().standardIcon(
-            QStyle.SP_DialogCloseButton))
-        remove_btn.clicked.connect(lambda: self.remove_group(item))
-
-        ui.groups_list.setItemWidget(item, 3, remove_btn)
-
-        # add to tree widget
-        ui.groups_list.addTopLevelItems([item])
+        # clear line edit
         ui.groupid_edit.clear()
 
         # add to file
         with open("groups.txt", "ab") as f:
             f.write(f"{Qt.Checked},{group_id},{group_name}\n".encode("utf-8"))
 
-        self.update_progress(f"Group {group_name} ({group_id}) added.")
+        self.add_to_log(f"Group {group_name} ({group_id}) added.")
 
+    # remove a group from the list, file and dict
     def remove_group(self, item):
         ui.groups_list.takeTopLevelItem(
             ui.groups_list.indexOfTopLevelItem(item))
@@ -82,8 +77,39 @@ class Main:
             f.truncate()
             f.writelines(lines)
 
+        self.add_to_log(f"Group {item.text(2)} ({item.text(1)}) removed.")
+
+    # save new check state of group to file
+    def toggle_group_check(self, item):
+        chkbx = ui.groups_list.itemWidget(item, 0)
+        new_checked_state = Qt.Checked if chkbx.isChecked() else Qt.Unchecked
+        new_chcked_state_str = "Checked" if new_checked_state == Qt.Checked else "Unchecked"
+
+        self.add_to_log(
+            f"{new_chcked_state_str} {item.text(2)} ({item.text(1)})")
+
+        # go through the file and change the check state of the item
+        with open("groups.txt", "r+", encoding="utf-8") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                _, group_id, group_name = line.strip().split(",")
+                if group_id == item.text(1):
+                    lines[i] = f"{new_checked_state},{group_id},{group_name}\n"
+                    break
+
+            f.seek(0)
+            f.truncate()
+            f.writelines(lines)
+
+    # add keyword to the list and file
     def add_keyword(self):
         keyword = ui.keyword_edit.text()
+
+        # check if keyword is empty
+        if keyword == "":
+            self.error_dialog("Keyword cannot be empty.")
+            ui.keyword_edit.clear()
+            return
 
         # check if keyword already exists
         for i in range(ui.keywords_list.topLevelItemCount()):
@@ -92,29 +118,16 @@ class Main:
                 ui.keyword_edit.clear()
                 return
 
-        item = QTreeWidgetItem(ui.keywords_list)
-        item.setCheckState(0, Qt.Checked)
-        item.setText(1, keyword)
-
-        # remove button (icon)
-        remove_btn = QPushButton(parent=ui.keywords_list)
-        remove_btn.setFixedSize(QSize(20, 20))
-        remove_btn.setIcon(QApplication.style().standardIcon(
-            QStyle.SP_DialogCloseButton))
-        remove_btn.clicked.connect(lambda: self.remove_keyword(item))
-
-        ui.keywords_list.setItemWidget(item, 2, remove_btn)
-
-        # add to tree widget
-        ui.keywords_list.addTopLevelItems([item])
+        self.add_keyword_list_item(keyword)
         ui.keyword_edit.clear()
 
         # add to file
         with open("keywords.txt", "ab") as f:
             f.write(f"{Qt.Checked},{keyword}\n".encode("utf-8"))
 
-        self.update_progress(f"Keyword {keyword} added.")
+        self.add_to_log(f"Keyword {keyword} added.")
 
+    # remove a keyword from the list and file
     def remove_keyword(self, item):
         ui.keywords_list.takeTopLevelItem(
             ui.keywords_list.indexOfTopLevelItem(item))
@@ -134,22 +147,28 @@ class Main:
             f.truncate()
             f.writelines(lines)
 
-    def update_progress(self, new_progress, error=False):
-        if error:
-            self.progress += f"<span style='color:red'>{self.progress_id}. {new_progress}</span><br>"
-        else:
-            self.progress += f"{self.progress_id}. {new_progress}<br>"
+    # save new check state of keyword to file
+    def toggle_keyword_check(self, item):
+        chkbx = ui.keywords_list.itemWidget(item, 0)
+        new_checked_state = Qt.Checked if chkbx.isChecked() else Qt.Unchecked
+        new_chcked_state_str = "Checked" if new_checked_state == Qt.Checked else "Unchecked"
 
-        ui.progress_edit.setText(self.progress)
-        # scroll down
-        ui.progress_edit.verticalScrollBar().setValue(
-            ui.progress_edit.verticalScrollBar().maximum())
+        self.add_to_log(f"{new_chcked_state_str} {item.text(1)} keyword")
 
-        # update gui immediately
-        QApplication.processEvents()
+        # go through the file and change the check state of the item
+        with open("keywords.txt", "r+", encoding="utf-8") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                _, keyword = line.strip().split(",")
+                if keyword == item.text(1):
+                    lines[i] = f"{new_checked_state},{keyword}\n"
+                    break
 
-        self.progress_id += 1
+            f.seek(0)
+            f.truncate()
+            f.writelines(lines)
 
+    # start the scraping process
     def start_scraping(self):
         # check if login info isn't empty
         if ui.email_edit.text() == "" or ui.password_edit.text() == "":
@@ -171,20 +190,26 @@ class Main:
             if os.path.exists("credentials.txt"):
                 os.remove("credentials.txt")
 
-        self.update_progress("Starting scraper...")
+        self.add_to_log("Starting scraper...")
 
         email = ui.email_edit.text()
         password = ui.password_edit.text()
 
-        # get group ids
+        # get checked group ids
         group_ids = []
         for i in range(ui.groups_list.topLevelItemCount()):
-            group_ids.append(ui.groups_list.topLevelItem(i).text(1))
+            item = ui.groups_list.topLevelItem(i)
+            chkbx = ui.groups_list.itemWidget(item, 0)
+            if chkbx.isChecked():
+                group_ids.append(item.text(1))
 
-        # get keywords
+        # get checked keywords
         keywords = []
         for i in range(ui.keywords_list.topLevelItemCount()):
-            keywords.append(ui.keywords_list.topLevelItem(i).text(1))
+            item = ui.keywords_list.topLevelItem(i)
+            chkbx = ui.keywords_list.itemWidget(item, 0)
+            if chkbx.isChecked():
+                keywords.append(item.text(1))
 
         scraper = GroupsScraper(email,
                                 password,
@@ -192,38 +217,69 @@ class Main:
                                 keywords,
                                 self.group_id_name_dict)
 
-        # connect the scraping complete signal to the set_scraping_result function,
-        # so when the scraping is done, a signal will be emitted, and the function will be called
-        scraper.scrape_complete_sig.connect(self.set_scraping_result)
+        # connect signals from scraper
+        scraper.group_scrapeing_started_sig.connect(
+            lambda group_name: self.handle_scraping_sig(group_name, 0))
+        scraper.group_scrapeing_complete_sig.connect(
+            lambda group_name: self.handle_scraping_sig(group_name, 1))
+        scraper.scrape_complete_sig.connect(self.handle_scraping_result)
 
         try:
             scraper.start()
         except LoginError as e:
             # error_dialog(str(e))
-            self.update_progress(f"Login error: {e}", error=True)
+            self.add_to_log(f"Login error: {e}", error=True)
+
+    # handle scraping started/complete on group signal
+    def handle_scraping_sig(self, group_name, is_complete):
+        if is_complete:
+            self.add_to_log(f"Complete scraping from {group_name}")
+        else:
+            self.add_to_log(f"Starting to scrape from {group_name}")
 
     # this function is being called once the scraping is done
     # (by a signal emitted from scraper.py)
-    def set_scraping_result(self, result):
-        self.update_progress("Scraping done, outputing to file...")
+    def handle_scraping_result(self, result):
+        self.add_to_log("Scraping done, outputing to file...")
 
         try:
-            HtmlGenerator(result).generate_html()
-            self.update_progress("Posts file generated in web folder.")
+            output_file_name = generate_html(result)
+            self.add_to_log("Posts file generated in output folder.")
             if ui.show_result_on_finish_chkbx.isChecked():
-                path = os.path.join(os.getcwd(), "web", "posts.html")
+                path = os.path.join(os.getcwd(), "output", output_file_name)
                 webbrowser.open("file:///" + path, new=0, autoraise=True)
         except Exception as e:
             print(e)
-            self.update_progress(f"Error: {e}", error=True)
+            self.add_to_log(f"Error: {e}", error=True)
 
         ui.start_btn.setEnabled(True)
 
+    # update the log text block
+    # appends new_log to existing one
+    # use error=True for red text
+    def add_to_log(self, new_log, error=False):
+        if error:
+            self.log += f"<span style='color:red'>{self.log_id}. {new_log}</span><br>"
+        else:
+            self.log += f"{self.log_id}. {new_log}<br>"
+
+        ui.log_edit.setText(self.log)
+        # scroll down
+        ui.log_edit.verticalScrollBar().setValue(
+            ui.log_edit.verticalScrollBar().maximum())
+
+        # update gui immediately
+        QApplication.processEvents()
+
+        self.log_id += 1
+
+    # pop up error dialog with no sound
     def error_dialog(self, message, title="Error"):
         error_icon = QPixmap("./icons/error.png")
         error_icon = error_icon.scaled(QSize(24, 24))
 
         msg = QMessageBox()
+        msg.setWindowIcon(QIcon(error_icon))
         msg.setIconPixmap(error_icon)
         msg.setText(message)
         msg.setWindowTitle(title)
@@ -239,6 +295,54 @@ class Main:
                 ui.email_edit.setText(lines[0].strip())
                 ui.password_edit.setText(lines[1].strip())
 
+    def add_group_list_item(self, group_id, group_name, checked_state=Qt.Checked):
+        item = QTreeWidgetItem(ui.groups_list)
+
+        # use checkbox
+        use_chkbx = QCheckBox(parent=ui.groups_list)
+        use_chkbx.setChecked(int(checked_state))
+        use_chkbx.stateChanged.connect(lambda: self.toggle_group_check(item))
+        ui.groups_list.setItemWidget(item, 0, use_chkbx)
+
+        # group id and name
+        item.setText(1, group_id)
+        item.setText(2, group_name)
+
+        # remove button (icon)
+        remove_btn = QPushButton(parent=ui.groups_list)
+        remove_btn.setFixedSize(QSize(20, 20))
+        remove_btn.setIcon(QApplication.style().standardIcon(
+            QStyle.SP_DialogCloseButton))
+        remove_btn.clicked.connect(lambda: self.remove_group(item))
+        ui.groups_list.setItemWidget(item, 3, remove_btn)
+
+        # add item to tree and dictionary
+        ui.groups_list.addTopLevelItems([item])
+        self.group_id_name_dict[group_id] = group_name
+
+    def add_keyword_list_item(self, keyword, checked_state=Qt.Checked):
+        item = QTreeWidgetItem(ui.keywords_list)
+
+        # use checkbox
+        use_chkbx = QCheckBox(parent=ui.keywords_list)
+        use_chkbx.setChecked(int(checked_state))
+        use_chkbx.stateChanged.connect(lambda: self.toggle_keyword_check(item))
+        ui.keywords_list.setItemWidget(item, 0, use_chkbx)
+
+        item.setText(1, keyword)
+
+        # remove button (icon)
+        remove_btn = QPushButton(parent=ui.keywords_list)
+        remove_btn.setFixedSize(QSize(20, 20))
+        remove_btn.setIcon(QApplication.style().standardIcon(
+            QStyle.SP_DialogCloseButton))
+        remove_btn.clicked.connect(lambda: self.remove_keyword(item))
+
+        ui.keywords_list.setItemWidget(item, 2, remove_btn)
+
+        # add to tree widget
+        ui.keywords_list.addTopLevelItems([item])
+
     # load already existing groups from groups.txt
     def load_groups(self):
         if os.path.exists("groups.txt"):
@@ -246,21 +350,8 @@ class Main:
                 lines = f.readlines()
                 for line in lines:
                     checked_state, group_id, group_name = line.strip().split(",")
-                    item = QTreeWidgetItem(ui.groups_list)
-                    item.setCheckState(0, int(checked_state))
-                    item.setText(1, group_id)
-                    item.setText(2, group_name)
-
-                    # remove button (icon)
-                    remove_btn = QPushButton(parent=ui.groups_list)
-                    remove_btn.setFixedSize(QSize(20, 20))
-                    remove_btn.setIcon(QApplication.style().standardIcon(
-                        QStyle.SP_DialogCloseButton))
-                    remove_btn.clicked.connect(lambda: self.remove_group(item))
-
-                    ui.groups_list.setItemWidget(item, 3, remove_btn)
-
-                    self.group_id_name_dict[group_id] = group_name
+                    self.add_group_list_item(
+                        group_id, group_name, checked_state)
 
     # load already existing keywords from keywords.txt
     def load_keywords(self):
@@ -269,20 +360,9 @@ class Main:
                 lines = f.readlines()
                 for line in lines:
                     checked_state, keyword = line.strip().split(",")
-                    item = QTreeWidgetItem(ui.keywords_list)
-                    item.setCheckState(0, int(checked_state))
-                    item.setText(1, keyword)
+                    self.add_keyword_list_item(keyword, checked_state)
 
-                    # remove button (icon)
-                    remove_btn = QPushButton(parent=ui.keywords_list)
-                    remove_btn.setFixedSize(QSize(20, 20))
-                    remove_btn.setIcon(QApplication.style().standardIcon(
-                        QStyle.SP_DialogCloseButton))
-                    remove_btn.clicked.connect(
-                        lambda: self.remove_keyword(item))
-
-                    ui.keywords_list.setItemWidget(item, 2, remove_btn)
-
+    # set all nessecary GUI things
     def set_gui(self):
         self.load_credentials()
         self.load_groups()
@@ -298,12 +378,14 @@ class Main:
         ui.groupid_edit.returnPressed.connect(self.add_group)
         ui.keyword_edit.returnPressed.connect(self.add_keyword)
 
+    # set button listeners etc
     def set_listeners(self):
         ui.start_btn.clicked.connect(self.start_scraping)
         ui.add_group_btn.clicked.connect(self.add_group)
         ui.add_keyword_btn.clicked.connect(self.add_keyword)
 
 
+# main function
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
