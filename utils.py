@@ -1,5 +1,6 @@
-from bs4 import BeautifulSoup
 import requests
+from bs4 import BeautifulSoup
+
 
 def get_group_name(group_id):
     BASE_GROUP_URL = "https://www.facebook.com/groups/"
@@ -12,7 +13,7 @@ def get_group_name(group_id):
     # get group name
     group_name = group_page.find('title').text.split('|')[0].strip()
     group_name = group_name.replace(",", ";")
-    
+
     return group_name
 
 
