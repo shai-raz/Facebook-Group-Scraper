@@ -46,4 +46,5 @@ After you're done setting up your groups and keywords, you can launch the scrape
 Once done - an html file will be created, containing all the scraped posts.
 
 ***Pay attention!*** If you scrape too much, or scrape from too many groups - facebook may ban you (probably temporarily).
+
 Therefore, use at your own risk.
