@@ -1,22 +1,32 @@
 import jinja2
 import datetime
+import os
 
-class HtmlGenerator:
-    def __init__(self, posts):
-        self.posts = posts
+def generate_html(posts):
+    templates_path = "./web/templates"
+    output_path = "./output"
 
-    def generate_html(self):
-        # load template
-        jinja_env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader('./web/templates'))
-        template = jinja_env.get_template('layout.html')
+    # load template
+    jinja_env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(templates_path))
+    template = jinja_env.get_template('layout.html')
 
-        # generate html
-        html_text = template.render(self.posts)
+    # generate html
+    html_text = template.render(posts)
 
-        # output to file
-        with open('./web/posts.html', 'wb') as f:
-            f.write(html_text.encode('utf-8'))
+    # create output folder if it doesnt exist
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    # get current time
+    current_datetime = datetime.datetime.now().strftime("%H-%M_%d.%m.%Y")
+    file_name = f'posts_{current_datetime}.html'
+    
+    # output to file
+    with open(f'{output_path}/{file_name}', 'wb') as f:
+        f.write(html_text.encode('utf-8'))
+
+    return file_name
 
 
 if __name__ == "__main__":
@@ -41,5 +51,4 @@ if __name__ == "__main__":
               ]
              }
 
-    html_generator = HtmlGenerator(posts)
-    html_generator.generate_html()
+    generate_html(posts)
