@@ -1,6 +1,5 @@
 # Facebook Group Posts Scraper
-A GUI app that allows post scraping from Facebook groups,
-in order to find relevant posts by filtering keywords.
+A GUI app that allows post scraping from Facebook groups, using keywords to filter relevant posts.
 
 Was mainly developed to assist with finding relevant jobs.
 
@@ -47,3 +46,4 @@ After you're done setting up your groups and keywords, you can launch the scrape
 Once done - an html file will be created, containing all the scraped posts.
 
 ***Pay attention!*** If you scrape too much, or scrape from too many groups - facebook may ban you (probably temporarily).
+Therefore, use at your own risk.
