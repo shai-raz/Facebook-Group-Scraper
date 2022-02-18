@@ -8,9 +8,14 @@ from utils import datetime_to_html_str
 
 class GroupsScraper(QObject, threading.Thread):
     # this signal will indicate when the scraping in complete
+    # signal for when the scraping is done
     scrape_complete_sig = pyqtSignal(dict)
-    group_scrapeing_started_sig = pyqtSignal(str)
-    group_scrapeing_complete_sig = pyqtSignal(str)
+    # signal for when the scraper starts scraping a group
+    group_scraping_started_sig = pyqtSignal(str)
+    # signal for when the scraper completes scraping a group
+    group_scraping_complete_sig = pyqtSignal(str)
+    # signal for when there's an error scraping a group
+    group_scraping_error_sig = pyqtSignal(str)
 
     def __init__(self, email, password, group_ids, keywords, group_id_name_dict, num_of_pages=2):
         threading.Thread.__init__(self)
@@ -84,46 +89,62 @@ class GroupsScraper(QObject, threading.Thread):
         # return self.get_fake_groups_posts()
 
         result = {'posts': []}
+        try:
+            for group_id in self.groups_id:
+                self.group_scraping_started_sig.emit(
+                    self.group_id_name_dict[group_id])
 
-        for group_id in self.groups_id:
-            self.group_scrapeing_started_sig.emit(self.group_id_name_dict[group_id])
-            for post in get_posts(group=group_id,
-                                  credentials=(self.email, self.password),
-                                  pages=self.num_of_pages):
-                if post['text'] is None:
+                posts = get_posts(group=group_id,
+                                credentials=(self.email, self.password),
+                                pages=self.num_of_pages)
+                # emit error if the group doesnt return any posts
+                if posts is None:
+                    self.group_scraping_error_sig.emit("No posts found for group: " + self.group_id_name_dict[group_id])
                     continue
 
-                if self.keywords:
-                    # check if the post contains any of the keywords
-                    # this also checks if the keyword appears in the TRANSLATED text
-                    # for example if a keyword is "hello" it will match a post having the word "hello" in it
-                    matched_keywords = [keyword for keyword in self.keywords if keyword in post['text']]
-                else:
-                    matched_keywords = []
+                for post in posts:
+                    # skip empty posts
+                    if post['text'] is None:
+                        continue
 
-                if not self.keywords or len(matched_keywords) > 0:
-                    post_text = post['original_text'] if 'original_text' in post else post['text']
-                    result['posts'].append(
-                        self.create_post_item(
-                            group_id,
-                            post['post_url'],
-                            post['time'],
-                            post_text,
-                            post['link'],
-                            matched_keywords
+                    if self.keywords:
+                        # check if the post contains any of the keywords
+                        # this also checks if the keyword appears in the TRANSLATED text
+                        # for example if a keyword is "hello" it will match a post having the word "hello" in it
+                        matched_keywords = [
+                            keyword for keyword in self.keywords if keyword in post['text']]
+                    else:
+                        matched_keywords = []
+
+                    if not self.keywords or len(matched_keywords) > 0:
+                        post_text = post['original_text'] if 'original_text' in post else post['text']
+                        result['posts'].append(
+                            self.create_post_item(
+                                group_id,
+                                post['post_url'],
+                                post['time'],
+                                post_text,
+                                post['link'],
+                                matched_keywords
+                            )
                         )
-                    )
 
-            self.group_scrapeing_complete_sig.emit(self.group_id_name_dict[group_id])
+                self.group_scraping_complete_sig.emit(
+                    self.group_id_name_dict[group_id])
 
-        # sort posts by time
-        result['posts'] = sorted(result['posts'], key=lambda k: k['time'], reverse=True)
+            # sort posts by time
+            result['posts'] = sorted(
+                result['posts'], key=lambda k: k['time'], reverse=True)
 
-        # change all times to html string
-        for post in result['posts']:
-            post['time'] = datetime_to_html_str(post['time'])
+            # change all times to html string
+            for post in result['posts']:
+                post['time'] = datetime_to_html_str(post['time'])
 
-        return result
+            return result
+
+        except Exception as e:
+            self.group_scraping_error_sig.emit(str(e))
+            return {}
 
     def run(self):
         # emit a signal that scraping is done

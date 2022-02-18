@@ -218,10 +218,12 @@ class Main:
                                 self.group_id_name_dict)
 
         # connect signals from scraper
-        scraper.group_scrapeing_started_sig.connect(
+        scraper.group_scraping_started_sig.connect(
             lambda group_name: self.handle_scraping_sig(group_name, 0))
-        scraper.group_scrapeing_complete_sig.connect(
+        scraper.group_scraping_complete_sig.connect(
             lambda group_name: self.handle_scraping_sig(group_name, 1))
+        scraper.group_scraping_error_sig.connect(
+            self.handle_scraping_error_sig)
         scraper.scrape_complete_sig.connect(self.handle_scraping_result)
 
         try:
@@ -237,9 +239,19 @@ class Main:
         else:
             self.add_to_log(f"Starting to scrape from {group_name}")
 
+    # handle scraping error signal
+    def handle_scraping_error_sig(self, error):
+        self.add_to_log(error, error=True)
+
     # this function is being called once the scraping is done
     # (by a signal emitted from scraper.py)
+
     def handle_scraping_result(self, result):
+        if not result:
+            self.add_to_log("Scraping was interrupted", error=True)
+            ui.start_btn.setEnabled(True)
+            return
+        
         self.add_to_log("Scraping done, outputing to file...")
 
         try:
