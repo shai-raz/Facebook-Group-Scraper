@@ -6,7 +6,7 @@ Was mainly developed to assist with finding relevant jobs.
 Based on [facebook-scraper](https://github.com/kevinzg/facebook-scraper) by [kevinzg](https://github.com/kevinzg).
 
 ## How To Use
-To install necessary libraries to run this project:
+After cloning the project, install necessary libraries using:
 ```
 pip install -r requirements.txt
 ```
