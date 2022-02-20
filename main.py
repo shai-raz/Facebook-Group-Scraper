@@ -235,7 +235,7 @@ class Main:
     # handle scraping started/complete on group signal
     def handle_scraping_sig(self, group_name, is_complete):
         if is_complete:
-            self.add_to_log(f"Complete scraping from {group_name}")
+            self.add_to_log(f"Completed scraping from {group_name}")
         else:
             self.add_to_log(f"Starting to scrape from {group_name}")
 
